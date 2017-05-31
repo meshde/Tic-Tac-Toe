@@ -105,18 +105,18 @@ class State(object):
 	def get_chosen(self):
 		return self.chosen
 	def print_state(self):
-		os.system('clc')
-		print('\t \t|\t \t|\t \t\n')
-		print('\t'+str(self.matrix[0][0])+'\t|\t'+str(self.matrix[0][1])+'\t|\t'+self.matrix[0][2]+'\t\n')
-		print('\t \t|\t \t|\t \t\n')
+		os.system('cls')
+		print('\t \t|\t \t|\t \t')
+		print('\t'+str(self.matrix[0][0])+'\t|\t'+str(self.matrix[0][1])+'\t|\t'+self.matrix[0][2]+'\t')
+		print('\t \t|\t \t|\t \t')
 		print('------------------------------------------------')
-		print('\t \t|\t \t|\t \t\n')
-		print('\t'+str(self.matrix[1][0])+'\t|\t'+str(self.matrix[1][1])+'\t|\t'+self.matrix[1][2]+'\t\n')
-		print('\t \t|\t \t|\t \t\n')
+		print('\t \t|\t \t|\t \t')
+		print('\t'+str(self.matrix[1][0])+'\t|\t'+str(self.matrix[1][1])+'\t|\t'+self.matrix[1][2]+'\t')
+		print('\t \t|\t \t|\t \t')
 		print('------------------------------------------------')
-		print('\t \t|\t \t|\t \t\n')
-		print('\t'+str(self.matrix[2][0])+'\t|\t'+str(self.matrix[2][1])+'\t|\t'+self.matrix[2][2]+'\t\n')
-		print('\t \t|\t \t|\t \t\n')
+		print('\t \t|\t \t|\t \t')
+		print('\t'+str(self.matrix[2][0])+'\t|\t'+str(self.matrix[2][1])+'\t|\t'+self.matrix[2][2]+'\t')
+		print('\t \t|\t \t|\t \t')
 
 class Game(object):
 	def __init__(self,player,user):
