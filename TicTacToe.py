@@ -159,66 +159,25 @@ class Game(object):
 		self.root = self.state
 		self.state.generate()
 		self.state.get_points()
-	def play(self,player1,player2):
+	def play(self,player1,player2,debug=0):
 		self.state = self.root
 		while not self.state.is_over():
-			self.state.print_state()
+			if debug == 0:
+				self.state.print_state()
 			if self.state.get_player() == player1.player:
 				self.state = player1.make_move(self.state)
 			else:
 				self.state = player2.make_move(self.state)
-		self.state.print_state()
+		if debug == 0:
+			self.state.print_state()
 		win = self.state.get_winner()
 		player1.post_result(win)
 		player2.post_result(win)
 		return
 	def trainQ(self,qplayer,player2):
-		for i in range(1000000):
-			self.play(qplayer,player2)
+		for i in range(100000):
+			self.play(qplayer,player2,debug=1)
 		return
-		#while self.state.get_chosen() != None:
-		#	self.state = self.state.get_chosen()
-		#	self.state.print_state()
-		#print(self.state.get_chosen())
-
-		# The map attribute is used for user input. The user is asked to enter a number from 1 to 9 where 1 represents cell (0,0), 2 represents cell (0,1), 3 represents cell (0,2) and so on
-		# self.map = [None,(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
-		# self.user = user
-		# self.history = []
-	# def get_state_from_user(self):
-	# 	u = int(input('Enter the index of the block:\t'))
-	# 	mat = [[w for w in z] for z in self.state.get_matrix()]
-	# 	x,y = self.map[u]
-	# 	mat[x][y] = self.user
-	# 	return self.state.get_child(mat)
-	# def play(self,player1,player2):
-	# 	# Assuming Player 1 is X (for now)
-	# 	self.state = self.root
-	# 	while not self.state.is_over():
-	# 		self.state.print_state()
-	# 		if self.state.get_player() == self.user:
-	# 			self.state = self.get_move(player1)
-	# 		else:
-	# 			#print('CPU made a move')
-	# 			self.state = self.get_move(player2)
-	# 	self.state.print_state()
-	# 	win = self.state.get_winner()
-	# 	if not win:
-	# 		print('DRAW')
-	# 	elif 'X' == win:
-	# 		print(player1+' Won!')
-	# 	else:
-	# 		print(player2+' Won!')
-	# def get_move(self,player):
-	# 	if player == 'User':
-	# 		return self.get_state_from_user()
-	# 	if player == 'MiniMax':
-	# 		print('MiniMax made a move!')
-	# 		return self.state.get_chosen()
-	# 	if player == 'Q':
-	# 		return self.Q_move()
-	# def Q_move(self):
-
 class Player(object):
 	def __init__(self,player):
 		""" Player attribute represents whether player is X or O """
@@ -251,8 +210,8 @@ class QPlayer(Player):
 	def __init__(self,player):
 		super().__init__(player)
 		self.history = []
-		self.epsilon = 0.3
-		self.alpha = 0.7
+		self.epsilon = 0.2
+		self.alpha = 0.4
 		self.gamma = 0.3
 	def clear(self):
 		self.history.clear()
@@ -264,7 +223,8 @@ class QPlayer(Player):
 		else:
 			""" Exploitation """
 			maxQ = state.get_max_Q()
-			best = [i for i,a in enumerate(state.get_children()) if a == maxQ]
+			#print(maxQ)
+			best = [i for i,a in enumerate(state.Q) if a == maxQ]
 			index = random.choice(best)
 		self.history.insert(0,(state,index))
 		return state.get_children()[index]
@@ -288,7 +248,7 @@ class MiniMax(Player):
 	def __init__(self,player):
 		super().__init__(player)
 	def make_move(self,state):
-		print('MiniMax made a Move')
+		#print('MiniMax made a Move')
 		return state.get_chosen()
 	def post_result(self,res):
 		if not res:
