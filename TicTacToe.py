@@ -136,6 +136,8 @@ class State(object):
 	def get_children(self):
 		return self.children
 	def get_max_Q(self):
+		if len(self.Q) == 0:
+			return 0
 		return max(self.Q)
 	def print_state(self):
 		os.system('cls')
@@ -152,10 +154,28 @@ class State(object):
 		print('\t \t|\t \t|\t \t')
 
 class Game(object):
-	def __init__(self,player,user):
+	def __init__(self,player):
 		self.state = State(player)
+		self.root = self.state
 		self.state.generate()
 		self.state.get_points()
+	def play(self,player1,player2):
+		self.state = self.root
+		while not self.state.is_over():
+			self.state.print_state()
+			if self.state.get_player() == player1.player:
+				self.state = player1.make_move(self.state)
+			else:
+				self.state = player2.make_move(self.state)
+		self.state.print_state()
+		win = self.state.get_winner()
+		player1.post_result(win)
+		player2.post_result(win)
+		return
+	def trainQ(self,qplayer,player2):
+		for i in range(1000000):
+			self.play(qplayer,player2)
+		return
 		#while self.state.get_chosen() != None:
 		#	self.state = self.state.get_chosen()
 		#	self.state.print_state()
@@ -165,38 +185,39 @@ class Game(object):
 		# self.map = [None,(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
 		# self.user = user
 		# self.history = []
-	def get_state_from_user(self):
-		u = int(input('Enter the index of the block:\t'))
-		mat = [[w for w in z] for z in self.state.get_matrix()]
-		x,y = self.map[u]
-		mat[x][y] = self.user
-		return self.state.get_child(mat)
-	def play(self,player1,player2):
-		# Assuming Player 1 is X (for now)
-		while not self.state.is_over():
-			self.state.print_state()
-			if self.state.get_player() == self.user:
-				self.state = self.get_move(player1)
-			else:
-				#print('CPU made a move')
-				self.state = self.get_move(player2)
-		self.state.print_state()
-		win = self.state.get_winner()
-		if not win:
-			print('DRAW')
-		elif 'X' == win:
-			print(player1+' Won!')
-		else:
-			print(player2+' Won!')
-	def get_move(self,player):
-		if player == 'User':
-			return self.get_state_from_user()
-		if player == 'MiniMax':
-			print('MiniMax made a move!')
-			return self.state.get_chosen()
-		if player == 'Q':
-			return self.Q_move()
-	def Q_move(self):
+	# def get_state_from_user(self):
+	# 	u = int(input('Enter the index of the block:\t'))
+	# 	mat = [[w for w in z] for z in self.state.get_matrix()]
+	# 	x,y = self.map[u]
+	# 	mat[x][y] = self.user
+	# 	return self.state.get_child(mat)
+	# def play(self,player1,player2):
+	# 	# Assuming Player 1 is X (for now)
+	# 	self.state = self.root
+	# 	while not self.state.is_over():
+	# 		self.state.print_state()
+	# 		if self.state.get_player() == self.user:
+	# 			self.state = self.get_move(player1)
+	# 		else:
+	# 			#print('CPU made a move')
+	# 			self.state = self.get_move(player2)
+	# 	self.state.print_state()
+	# 	win = self.state.get_winner()
+	# 	if not win:
+	# 		print('DRAW')
+	# 	elif 'X' == win:
+	# 		print(player1+' Won!')
+	# 	else:
+	# 		print(player2+' Won!')
+	# def get_move(self,player):
+	# 	if player == 'User':
+	# 		return self.get_state_from_user()
+	# 	if player == 'MiniMax':
+	# 		print('MiniMax made a move!')
+	# 		return self.state.get_chosen()
+	# 	if player == 'Q':
+	# 		return self.Q_move()
+	# def Q_move(self):
 
 class Player(object):
 	def __init__(self,player):
@@ -231,6 +252,8 @@ class QPlayer(Player):
 		super().__init__(player)
 		self.history = []
 		self.epsilon = 0.3
+		self.alpha = 0.7
+		self.gamma = 0.3
 	def clear(self):
 		self.history.clear()
 		return
@@ -243,9 +266,23 @@ class QPlayer(Player):
 			maxQ = state.get_max_Q()
 			best = [i for i,a in enumerate(state.get_children()) if a == maxQ]
 			index = random.choice(best)
-		self.history.append((state,index))
+		self.history.insert(0,(state,index))
 		return state.get_children()[index]
-	def post_result()
+	def post_result(self,res):
+		if not res:
+			""" DRAW """
+			return
+		if res == self.player:
+			""" Player Won """
+			self.history[0][0].Q[self.history[0][1]] += self.alpha*(10-self.history[0][0].Q[self.history[0][1]])
+		else:
+			self.history[0][0].Q[self.history[0][1]] += self.alpha*(-10-self.history[0][0].Q[self.history[0][1]])
+		self.updateQ()
+		return
+	def updateQ(self):
+		for i in range(1,len(self.history)):
+			self.history[i][0].Q[self.history[i][1]] += self.alpha*((self.gamma*self.history[i-1][0].get_max_Q()) - self.history[i][0].Q[self.history[i][1]])
+		self.clear()
 
 class MiniMax(Player):
 	def __init__(self,player):
@@ -260,4 +297,19 @@ class MiniMax(Player):
 			print('MiniMax Won!')
 		else:
 			print('MiniMax Lost!')
+		return
+
+class RandomPlayer(Player):
+	def __init__(self,player):
+		super().__init__(player)
+	def make_move(self,state):
+		print('Random made a Move')
+		return random.choice(state.children)
+	def post_result(self,res):
+		if not res:
+			print('DRAW!')
+		elif res == self.player:
+			print('Random Won!')
+		else:
+			print('Random Lost!')
 		return
